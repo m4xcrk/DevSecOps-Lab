@@ -1,0 +1,29 @@
+---
+- name: Automated Wazuh Agent Update Pipeline
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure APT cache is fresh
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade wazuh-agent binaries safely
+      apt:
+        name: wazuh-agent
+        state: latest
+        only_upgrade: yes
+
+    - name: Verify that the agent engine restarted successfully
+      systemd:
+        name: wazuh-agent
+        state: restarted
+        enabled: yes
+
+    - name: Collect execution validation metrics
+      shell: /var/ossec/bin/wazuh-agentd -v
+      register: agent_version
+
+    - name: Output active runtime metrics
+      debug:
+        msg: "Host {{ inventory_hostname }} is successfully verified on variant {{ agent_version.stdout }}"
