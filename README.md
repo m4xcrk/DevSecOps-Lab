@@ -59,9 +59,11 @@ server {
         proxy_pass https://10.69.98;
         proxy_ssl_verify off;
     }
+
     location /grafana/ {
         proxy_pass http://10.69.98;
     }
+
     location /prometheus/ {
         proxy_pass http://10.69.98;
     }
