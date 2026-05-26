@@ -1,0 +1,11 @@
+# Ignore private infrastructure states
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Ignore private lab credentials and IP mappings
+inventory.ini
+hosts.ini
+*.key
+*.pem
