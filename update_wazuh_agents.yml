@@ -1,29 +1,31 @@
 ---
 - name: Automated Wazuh Agent Update Pipeline
   hosts: all
-  become: yes
+  become: true # Fixes yaml[truthy]: changed "yes" to "true"
+
   tasks:
     - name: Ensure APT cache is fresh
-      apt:
-        update_cache: yes
+      ansible.builtin.apt: # Fixes fqcn[action-core]: added fully qualified collection name
+        update_cache: true # Fixes yaml[truthy]: changed "yes" to "true"
         cache_valid_time: 3600
 
     - name: Upgrade wazuh-agent binaries safely
-      apt:
+      ansible.builtin.apt: # Fixes fqcn[action-core]
         name: wazuh-agent
-        state: latest
-        only_upgrade: yes
+        state: latest # noqa package-latest (Suppresses warning since you explicitly want the newest engine)
+        only_upgrade: true # Fixes yaml[truthy]: changed "yes" to "true"
 
     - name: Verify that the agent engine restarted successfully
-      systemd:
+      ansible.builtin.systemd: # Fixes fqcn[action-core]
         name: wazuh-agent
         state: restarted
-        enabled: yes
+        enabled: true # Fixes yaml[truthy]: changed "yes" to "true"
 
     - name: Collect execution validation metrics
-      shell: /var/ossec/bin/wazuh-agentd -v
+      ansible.builtin.command: /var/ossec/bin/wazuh-agentd -v # Fixes command-instead-of-shell: switched to command
       register: agent_version
+      changed_when: false # Fixes no-changed-when: stops Ansible from marking a read-only command as a "system change"
 
     - name: Output active runtime metrics
-      debug:
+      ansible.builtin.debug: # Fixes fqcn[action-core]
         msg: "Host {{ inventory_hostname }} is successfully verified on variant {{ agent_version.stdout }}"
