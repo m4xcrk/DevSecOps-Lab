@@ -42,7 +42,7 @@ jobs:
 
     - name: Install Linting Tools
       run: |
-        pip install ansible-lint py_compile
+        pip install ansible-lint
 
     - name: Check Python Script Syntax
       run: python -m py_compile AI_Integration_Wazuh.py
