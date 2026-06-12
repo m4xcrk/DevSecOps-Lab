@@ -1,0 +1,52 @@
+name: DevSecOps Lab Validation
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # Job 1: Lint and Validate Terraform Configuration
+  terraform-ci:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "1.7.0"
+
+    - name: Terraform Init
+      run: terraform init -backend=false
+
+    - name: Terraform Format Check
+      run: terraform fmt -check
+
+    - name: Terraform Validate
+      run: terraform validate
+
+  # Job 2: Lint Ansible Playbooks and Python Logic
+  ansible-python-ci:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install Linting Tools
+      run: |
+        pip install ansible-lint py_compile
+
+    - name: Check Python Script Syntax
+      run: python -m py_compile AI_Integration_Wazuh.py
+
+    # This checks all your .yml files for Ansible best practices
+    - name: Run Ansible Lint
+      run: ansible-lint *.yml
