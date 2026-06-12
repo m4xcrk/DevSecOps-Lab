@@ -1,0 +1,44 @@
+---
+- name: Phase 1 - OS Level Patching Across Entire Fleet
+  hosts: all_lab
+  become: true
+  tasks:
+    - name: Update apt cache and upgrade all software packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+        purge: yes
+
+    - name: Verify if a system reboot is required by Ubuntu
+      stat:
+        path: /var/run/reboot-required
+      register: reboot_required_file
+
+    - name: Safe-reboot the container if kernel/glibc demands it
+      reboot:
+        msg: "Rebooting container via Ansible due to critical updates"
+        reboot_timeout: 180
+      when: reboot_required_file.stat.exists
+
+- name: Phase 2 - Refresh Wazuh Agents on Monitors
+  hosts: lb, docker_host, attack
+  tasks:
+    - name: Ensure agent daemon restarts fresh to push up-to-date vulnerability definitions
+      systemd:
+        name: wazuh-agent
+        state: restarted
+
+- name: Phase 3 - Verify Wazuh Server Compose Stack Lifecycle
+  hosts: soc
+  tasks:
+    - name: Bring Docker service online inside vm04 if down
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Ensure the Wazuh Docker stack boots cleanly back up
+      shell: "docker compose up -d"
+      args:
+        chdir: /root/wazuh-docker/single-node/
