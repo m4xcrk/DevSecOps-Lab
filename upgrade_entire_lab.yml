@@ -33,7 +33,7 @@
         enabled: true
 
     - name: Ensure the Wazuh Docker stack boots cleanly back up
-      ansible.builtin.shell: docker compose -f /opt/wazuh/docker-compose.yml up -d
+      ansible.builtin.command: docker compose -f /opt/wazuh/docker-compose.yml up -d
       args:
         chdir: /opt/wazuh
       register: docker_compose_output
